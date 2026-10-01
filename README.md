@@ -2,17 +2,16 @@
 
 **An agent that answers with live, interactive UI instead of paragraphs.**
 
-You ask a question. The model emits a declarative component tree plus a data
-model — an [A2UI](#the-a2ui-contract) message — and the client renders it as
-working React widgets: sliders, tables, bar charts, toggles, stat cards. Move a
-widget and the event travels back to the agent, which **recomputes every
-dependent number** and patches the surface. The raw protocol for each turn sits
-below the canvas in an inspector, because in this app the messages *are* the
-interesting part.
+You ask a question. The model emits a declarative component tree plus a data model — an [A2UI](#the-a2ui-contract) message — and the client renders it as working React widgets: sliders, tables, bar charts, toggles, stat cards. Move a widget and the event travels back to the agent, which **recomputes every dependent number** and patches the surface. The raw protocol for each turn sits below the canvas in an inspector, because in this app the messages *are* the interesting part.
 
-No mock data. No hardcoded tree. No `dangerouslySetInnerHTML`, no `eval`, and no
-path by which the model can execute anything: it can only name components from a
-ten-item allowlist.
+No mock data. No hardcoded tree. No `dangerouslySetInnerHTML`, no `eval`, and no path by which the model can execute anything: it can only name components from a ten-item allowlist.
+
+<img width="1793" height="1034" alt="Screenshot at Oct 01 22-06-24" src="https://github.com/user-attachments/assets/8aef7893-ab6d-492c-842c-3ee7fb6861f7" />
+<img width="1794" height="1034" alt="Screenshot at Oct 01 22-06-30" src="https://github.com/user-attachments/assets/ec719182-6470-4a4c-bd01-5c1fcd5d9841" />
+<img width="1795" height="1035" alt="Screenshot at Oct 01 22-06-45" src="https://github.com/user-attachments/assets/82339e7d-bfa3-4663-82e6-c5b45742bb1b" />
+
+
+https://github.com/user-attachments/assets/7938a781-bae2-4cc0-8cfb-83ec3fc8d967
 
 ```
 you    › Plan a 5-day trip to Kerala under 40000 rupees, with a per-day cost breakdown
@@ -641,19 +640,13 @@ vite.config.ts      client on :5173, /api proxy to the selected runtime
 npm run typecheck && npm run verify && npm run verify:screenshots
 ```
 
-`npm run verify` hits a real model, so run it with a key configured. If a check
-fails on model flakiness rather than your change, say so in the PR and paste the
-table — don't quietly weaken a guardrail to make it green.
+`npm run verify` hits a real model, so run it with a key configured. If a check fails on model flakiness rather than your change, say so in the PR and paste the table — don't quietly weaken a guardrail to make it green.
 
 ### Conventions
 
-- **The catalog is the source of truth.** Anything that knows about components
-  (prompt, zod, client registry) reads `shared/catalog.ts`. Never add a name in
-  one place only.
-- **Never repair a payload.** If you're tempted to fix the model's JSON, stop —
-  re-ask it instead (`agent/turn.ts`'s `emit()`), or refuse.
-- **Explicit `.ts` extensions** in `agent/`, `shared/`, `server-node/` imports,
-  because Node runs those files directly through type-stripping.
+- **The catalog is the source of truth.** Anything that knows about components (prompt, zod, client registry) reads `shared/catalog.ts`. Never add a name in one place only.
+- **Never repair a payload.** If you're tempted to fix the model's JSON, stop — re-ask it instead (`agent/turn.ts`'s `emit()`), or refuse.
+- **Explicit `.ts` extensions** in `agent/`, `shared/`, `server-node/` imports, because Node runs those files directly through type-stripping.
 - **No `dangerouslySetInnerHTML`, no `eval`, no new top-level message keys.**
 - Keep responses free of the API key at every layer, including error bodies.
 
@@ -681,21 +674,15 @@ export default function Sparkline({ props }: WidgetProps) { /* svg from asArray(
 export const registry = { /* … */ Sparkline };
 ```
 
-Typecheck will fail at step 4 until the map is complete — `Record<ComponentName,
-ComponentType<WidgetProps>>` is exhaustive by construction, which is what keeps
-the client allowlist from silently drifting away from the server catalog.
+Typecheck will fail at step 4 until the map is complete — `Record<ComponentName, ComponentType<WidgetProps>>` is exhaustive by construction, which is what keeps the client allowlist from silently drifting away from the server catalog.
 
 ### Adding a provider
 
-Usually zero code: pick **Custom** in Settings and point it at any
-OpenAI-compatible `/v1`. Add a preset to `PRESETS` in
-`client/src/lib/client.ts` only if you want a named button and a default model.
+Usually zero code: pick **Custom** in Settings and point it at any OpenAI-compatible `/v1`. Add a preset to `PRESETS` in `client/src/lib/client.ts` only if you want a named button and a default model.
 
 ### PRs and issues
 
-Small, single-purpose PRs; describe which verification checks you ran and paste
-the table. Issues are welcome — especially reproducible `invalid_surface` payloads
-(raw model output, with the key stripped).
+Small, single-purpose PRs; describe which verification checks you ran and paste the table. Issues are welcome — especially reproducible `invalid_surface` payloads (raw model output, with the key stripped).
 
 ---
 
@@ -703,47 +690,23 @@ the table. Issues are welcome — especially reproducible `invalid_surface` payl
 
 Ordered roughly by how much they improve the demo per hour of work.
 
-1. **Streaming surfaces.** Emit components as the model produces them so the
-   surface assembles progressively. The Agents SDK has `StreamingResponse` and
-   `agents/streams`; the contract already tolerates partial `surfaceUpdate`s.
-2. **Per-component patch messages.** Today `surfaceUpdate` replaces the tree.
-   Add `patchComponents: [{ id, component }]` plus `removeComponents: [id]` so a
-   slider drag sends three components instead of twenty-three. Verify check 2
-   already measures exactly this set.
-3. **Input and choice widgets.** `TextField`, `Select`, `DateRange` — the
-   catalog's biggest gap. Follow the four-file checklist above; `bind` semantics
-   are already generic.
-4. **Layout polish: `Card`, `Tabs`, `Grid`.** Several surfaces would be denser if
-   widgets could be grouped into tabs instead of a long column.
-5. **Undo / turn history.** `/api/session/:id` already returns the full turn log;
-   replaying turn *n* reconstructs any earlier surface. A timeline scrubber is
-   almost free.
-6. **Deterministic recomputation for pure arithmetic.** Let the model attach a
-   `formula` to a derived component (`"total": "sum(days[].cost)"`) and have the
-   server evaluate it after a patch — the model proposes, the server checks, and
-   a wrong total becomes a visible guardrail failure instead of a silent one.
-7. **Multi-surface sessions.** `deleteSurface` is already in the contract; let one
-   session hold several surfaces side by side (plan + budget + map-less itinerary).
-8. **A2UI conformance fixture.** Publish the catalog + schemas as a standalone
-   package so other hosts can check interoperability against the same allowlist.
-9. **Cost and latency metering.** `meta` already carries token counts per turn —
-   chart them in the inspector header.
-10. **Deploy recipe.** `wrangler deploy` plus a Durable Object migration tag; the
-    only work is moving `.env` values into `wrangler secret put`.
+1. **Streaming surfaces.** Emit components as the model produces them so the surface assembles progressively. The Agents SDK has `StreamingResponse` and `agents/streams`; the contract already tolerates partial `surfaceUpdate`s.
+2. **Per-component patch messages.** Today `surfaceUpdate` replaces the tree. Add `patchComponents: [{ id, component }]` plus `removeComponents: [id]` so a slider drag sends three components instead of twenty-three. Verify check 2 already measures exactly this set.
+3. **Input and choice widgets.** `TextField`, `Select`, `DateRange` — the catalog's biggest gap. Follow the four-file checklist above; `bind` semantics are already generic.
+4. **Layout polish: `Card`, `Tabs`, `Grid`.** Several surfaces would be denser if widgets could be grouped into tabs instead of a long column.
+5. **Undo / turn history.** `/api/session/:id` already returns the full turn log; replaying turn *n* reconstructs any earlier surface. A timeline scrubber is almost free.
+6. **Deterministic recomputation for pure arithmetic.** Let the model attach a `formula` to a derived component (`"total": "sum(days[].cost)"`) and have the server evaluate it after a patch — the model proposes, the server checks, and a wrong total becomes a visible guardrail failure instead of a silent one.
+7. **Multi-surface sessions.** `deleteSurface` is already in the contract; let one session hold several surfaces side by side (plan + budget + map-less itinerary).
+8. **A2UI conformance fixture.** Publish the catalog + schemas as a standalone package so other hosts can check interoperability against the same allowlist.
+9. **Cost and latency metering.** `meta` already carries token counts per turn — chart them in the inspector header.
+10. **Deploy recipe.** `wrangler deploy` plus a Durable Object migration tag; the only work is moving `.env` values into `wrangler secret put`.
 
 ---
 
 ## Known limitations
 
-- **Model emission quality is the binding constraint.** Small models truncate
-  large surfaces, fumble JSON keys, and occasionally put a slider outside its own
-  range. The retry loop absorbs most of it; when it can't, the turn is refused
-  visibly rather than half-applied.
-- **Dependent recomputation is model arithmetic.** The verifier proves numbers
-  *change*, not that they are correct. A weak model can change them wrongly and
-  still pass check 2. Idea 6 above is the fix.
-- **One surface per session; no auth, no multi-user, no persistence** beyond the
-  Durable Object's lifetime — by design.
-- **Prompt tokens are the real cost.** The catalog plus the model's own prior
-  replies travel every turn (history capped at 3 turns / ~6k characters).
+- **Model emission quality is the binding constraint.** Small models truncate large surfaces, fumble JSON keys, and occasionally put a slider outside its own range. The retry loop absorbs most of it; when it can't, the turn is refused visibly rather than half-applied.
+- **Dependent recomputation is model arithmetic.** The verifier proves numbers *change*, not that they are correct. A weak model can change them wrongly and still pass check 2. Idea 6 above is the fix.
+- **One surface per session; no auth, no multi-user, no persistence** beyond the Durable Object's lifetime — by design.
+- **Prompt tokens are the real cost.** The catalog plus the model's own prior replies travel every turn (history capped at 3 turns / ~6k characters).
 - **No license file yet.** Add one before publishing if you want others to use it.
