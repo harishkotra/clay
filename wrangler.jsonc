@@ -1,0 +1,32 @@
+{
+  // Clay agent runtime — Cloudflare Agents SDK, one SQLite-backed Durable Object
+  // per session. `npm run dev` puts this on :8787 and Vite proxies /api to it.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "clay-agent",
+  "main": "agent/index.ts",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "enabled": true
+  },
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "CLAY_AGENT",
+        "class_name": "ClayAgent"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["ClayAgent"]
+    }
+  ],
+  // Bindings come from `.env` via `--var` (see scripts/run-agent.mjs): wrangler
+  // does not promote process env into `env`, and secrets do not belong in this
+  // file.
+  "vars": {
+    "RUNTIME_LABEL": "workers"
+  }
+}

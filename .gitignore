@@ -1,0 +1,39 @@
+# --- dependencies & build output -------------------------------------------
+node_modules/
+dist/
+*.tsbuildinfo
+.vite/
+
+# --- local runtime state -----------------------------------------------------
+# wrangler dev keeps one SQLite file per Durable Object (one per chat session)
+# plus its own config/cache; none of it belongs in the repo.
+.wrangler/
+
+# --- secrets -----------------------------------------------------------------
+# .env.example is the committed template; the real key never gets committed.
+.env
+.env.local
+.env.*.local
+.dev.vars
+.dev.vars.local
+
+# --- editor / OS -------------------------------------------------------------
+.DS_Store
+._*
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# --- logs, scratch & verification droppings ----------------------------------
+*.log
+npm-debug.log*
+yarn-error.log*
+.verify/
+coverage/
+tmp/
+scratch/
+
+# --- intentionally committed -------------------------------------------------
+# docs/screenshots/*.png + report.json are referenced by README.md and are the
+# evidence for the acceptance checks, so they stay in the repo.

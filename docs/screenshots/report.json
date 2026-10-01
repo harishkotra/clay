@@ -1,0 +1,74 @@
+{
+  "origin": "http://127.0.0.1:5175",
+  "startedAt": "2026-10-01T04:54:57.030Z",
+  "steps": [
+    {
+      "step": "surface A",
+      "chips": [
+        "T0"
+      ],
+      "components": "20"
+    },
+    {
+      "step": "slider drag",
+      "widget": "Hotel per night",
+      "from": 2500,
+      "to": 6000,
+      "numbersChanged": 6,
+      "examples": [
+        {
+          "before": "2,500",
+          "after": "6,000",
+          "draggedWidget": false
+        },
+        {
+          "before": "5,400",
+          "after": "8,900",
+          "draggedWidget": false
+        },
+        {
+          "before": "2,500",
+          "after": "6,000",
+          "draggedWidget": false
+        },
+        {
+          "before": "5,400",
+          "after": "8,900",
+          "draggedWidget": false
+        },
+        {
+          "before": "2,500",
+          "after": "6,000",
+          "draggedWidget": false
+        },
+        {
+          "before": "5,400",
+          "after": "8,900",
+          "draggedWidget": false
+        }
+      ],
+      "chips": [
+        "T0",
+        "I1"
+      ]
+    },
+    {
+      "step": "surface B",
+      "chips": [
+        "T0",
+        "T1"
+      ],
+      "components": "16"
+    },
+    {
+      "step": "guardrail refusal",
+      "refused": true,
+      "detail": "forbidden markup pattern \"onclick\"",
+      "widgetsStillRendering": 2,
+      "surfaceHasScriptNode": false,
+      "surfaceHasOnclickAttr": false,
+      "surfaceHasJsUrl": false,
+      "pageScriptTags": 3
+    }
+  ]
+}

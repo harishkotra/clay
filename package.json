@@ -1,0 +1,42 @@
+{
+  "name": "clay-qwen-3-8-flash",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Clay — A2UI: the agent answers with live, interactive React surfaces instead of paragraphs. Cloudflare Agents SDK (Durable Object per session, SQLite-backed) + Node fallback runtime + Vite/React renderer.",
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "dev:workers": "RUNTIME=workers node scripts/dev.mjs",
+    "dev:node": "RUNTIME=node node scripts/dev.mjs",
+    "dev:agent": "node scripts/run-agent.mjs",
+    "dev:client": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -p tsconfig.server.json --noEmit && tsc -p tsconfig.client.json --noEmit",
+    "verify": "node scripts/verify.mjs",
+    "verify:screenshots": "node scripts/screenshots.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/client": "2.0.0",
+    "@modelcontextprotocol/sdk": "1.30.0",
+    "@modelcontextprotocol/server": "2.0.0",
+    "agents": "^0.24.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260930.2",
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/react": "^18.3.21",
+    "@types/react-dom": "^18.3.7",
+    "@vitejs/plugin-react": "^6.1.1",
+    "tailwindcss": "^4.3.3",
+    "typescript": "~5.9.0",
+    "vite": "^8.3.1",
+    "wrangler": "^4.145.0"
+  },
+  "engines": {
+    "node": ">=22.18"
+  }
+}
